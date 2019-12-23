@@ -31,6 +31,11 @@ public class SDKConfig {
     private final static Logger logger = LoggerFactory.getLogger(SDKConfig.class);
 
     public static final String FILE_NAME = "properties/acp_sdk.properties";
+
+    /**
+     * 商户Id.
+     */
+    private String merchantId;
     /**
      * 前台请求URL.
      */
@@ -151,6 +156,10 @@ public class SDKConfig {
     private String qrcB2cIssBackTransUrl;
     private String qrcB2cMerBackTransUrl;
 
+    /**
+     * 配置文件中的商户Id常量.
+     */
+    public static final String SDK_MERCHANT_ID = "acpsdk.merId";
     /**
      * 配置文件中的前台URL常量.
      */
@@ -418,6 +427,10 @@ public class SDKConfig {
             this.validateCertDir = value.trim();
             logger.info("配置项：验证签名证书路径(这里配置的是目录，不要指定到公钥文件)==>" + SDK_VALIDATECERT_DIR + "==>" + value + " 已加载");
         }
+        value = pro.getProperty(SDK_MERCHANT_ID);
+        if (!SDKUtil.isEmpty(value)) {
+            this.merchantId = value.trim();
+        }
         value = pro.getProperty(SDK_FRONT_URL);
         if (!SDKUtil.isEmpty(value)) {
             this.frontRequestUrl = value.trim();
@@ -554,6 +567,13 @@ public class SDKConfig {
         }
     }
 
+    public String getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(String merchantId) {
+        this.merchantId = merchantId;
+    }
 
     public String getFrontRequestUrl() {
         return frontRequestUrl;

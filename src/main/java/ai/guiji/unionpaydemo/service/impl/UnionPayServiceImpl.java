@@ -36,7 +36,6 @@ public class UnionPayServiceImpl implements UnionPayService {
     //申请二维码（主扫）https://open.unionpay.com/tjweb/acproduct/APIList?apiservId=468&acpAPIId=726
     @Override
     public Map<String, String> applyQrCode(Map<String, String> params) {
-        String merId = params.get("merId");
         String txnAmt = params.get("txnAmt");
         String orderId = params.get("orderId");
         String txnTime = params.get("txnTime");
@@ -53,7 +52,7 @@ public class UnionPayServiceImpl implements UnionPayService {
         contentData.put("channelType", "08");                    //渠道类型 08手机
 
         /***商户接入参数***/
-        contentData.put("merId", merId);                        //商户号码，请改成自己申请的商户号或者open上注册得来的777商户号测试
+        contentData.put("merId", SDKConfig.getConfig().getMerchantId());                       //商户号码，请改成自己申请的商户号或者open上注册得来的777商户号测试
         contentData.put("accessType", "0");                        //接入类型，商户接入填0 ，不需修改（0：直连商户， 1： 收单机构 2：平台商户）
         contentData.put("orderId", orderId);                    //商户订单号，8-40位数字字母，不能含“-”或“_”，可以自行定制规则
         contentData.put("txnTime", txnTime);                    //订单发送时间，取系统时间，格式为YYYYMMDDhhmmss，必须取当前时间，否则会报txnTime无效
