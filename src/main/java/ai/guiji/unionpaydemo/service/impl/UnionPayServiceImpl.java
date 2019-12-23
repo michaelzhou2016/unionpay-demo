@@ -2,7 +2,7 @@ package ai.guiji.unionpaydemo.service.impl;
 
 import ai.guiji.unionpaydemo.config.SDKConfig;
 import ai.guiji.unionpaydemo.service.AcpService;
-import ai.guiji.unionpaydemo.service.PayService;
+import ai.guiji.unionpaydemo.service.UnionPayService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import java.util.Map;
  * Description:
  */
 @Service
-public class PayServiceImpl implements PayService {
+public class UnionPayServiceImpl implements UnionPayService {
 
     @Override
     public Map<String, String> applyQrCode(Map<String, String> params) {
