@@ -3,8 +3,10 @@ package ai.guiji.unionpaydemo.service.impl;
 import ai.guiji.unionpaydemo.config.SDKConfig;
 import ai.guiji.unionpaydemo.service.AcpService;
 import ai.guiji.unionpaydemo.service.UnionPayService;
+import ai.guiji.unionpaydemo.utils.CertUtil;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +17,13 @@ import java.util.Map;
  */
 @Service
 public class UnionPayServiceImpl implements UnionPayService {
+
+    @PostConstruct
+    public void init() {
+        System.out.println("银联支付初始化");
+        SDKConfig.getConfig().loadPropertiesFromSrc(); //从classpath加载acp_sdk.properties文件
+        CertUtil.init();
+    }
 
     @Override
     public Map<String, String> applyQrCode(Map<String, String> params) {
