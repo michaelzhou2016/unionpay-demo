@@ -1,6 +1,8 @@
 package ai.guiji.unionpaydemo.service;
 
 import ai.guiji.unionpaydemo.utils.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import java.util.regex.Pattern;
  * @Description acpsdk接口服务类，接入商户集成请可以直接参考使用本类中的方法
  */
 public class AcpService {
+    private final static Logger logger = LoggerFactory.getLogger(AcpService.class);
 
     /**
      * 请求报文签名(使用配置文件中配置的私钥证书或者对称密钥签名)<br>
@@ -110,7 +113,7 @@ public class AcpService {
      * 对控件支付成功返回的结果信息中data域进行验签（控件端获取的应答信息）<br>
      */
     public static boolean validateAppResponse(String jsonData, String encoding) {
-        LogUtil.writeLog("控件应答信息验签处理开始：[" + jsonData + "]");
+        logger.info("控件应答信息验签处理开始：[" + jsonData + "]");
         if (SDKUtil.isEmpty(encoding)) {
             encoding = "UTF-8";
         }
@@ -137,9 +140,9 @@ public class AcpService {
                     .getBytes(encoding)), SecureUtil.sha1X16(data,
                     encoding));
         } catch (UnsupportedEncodingException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } catch (Exception e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return false;
     }
@@ -154,7 +157,7 @@ public class AcpService {
      */
     public static Map<String, String> post(Map<String, String> reqData, String reqUrl, String encoding) {
         Map<String, String> rspData = new HashMap<String, String>();
-        LogUtil.writeLog("请求银联地址:" + reqUrl);
+        logger.info("请求银联地址:" + reqUrl);
         //发送后台请求数据
         try {
             String resultString = HttpClientUtil.post(reqUrl, reqData, encoding);
@@ -164,7 +167,7 @@ public class AcpService {
                 rspData.putAll(tmpRspData);
             }
         } catch (Exception e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return rspData;
     }
@@ -178,7 +181,7 @@ public class AcpService {
      */
     public static String get(String reqUrl, String encoding) {
 
-        LogUtil.writeLog("请求银联地址:" + reqUrl);
+        logger.info("请求银联地址:" + reqUrl);
         //发送后台请求数据
         try {
             String resultString = HttpClientUtil.get(reqUrl, null, encoding);
@@ -186,7 +189,7 @@ public class AcpService {
                 return resultString;
             }
         } catch (Exception e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return null;
     }
@@ -241,7 +244,7 @@ public class AcpService {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                LogUtil.writeErrorLog(e.getMessage(), e);
+                logger.error(e.getMessage(), e);
             }
         }
         InputStream in = null;
@@ -255,13 +258,13 @@ public class AcpService {
                 baseFileContent = new String(SecureUtil.base64Encode(SDKUtil.deflater(s)), encoding);
             }
         } catch (Exception e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } finally {
             if (null != in) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    LogUtil.writeErrorLog(e.getMessage(), e);
+                    logger.error(e.getMessage(), e);
                 }
             }
         }
@@ -301,9 +304,9 @@ public class AcpService {
                 out.write(fileArray, 0, fileArray.length);
                 out.flush();
             } catch (UnsupportedEncodingException e) {
-                LogUtil.writeErrorLog(e.getMessage(), e);
+                logger.error(e.getMessage(), e);
             } catch (IOException e) {
-                LogUtil.writeErrorLog(e.getMessage(), e);
+                logger.error(e.getMessage(), e);
             } finally {
                 try {
                     out.close();
@@ -327,9 +330,9 @@ public class AcpService {
         try {
             fc = new String(SDKUtil.inflater(SecureUtil.base64Decode(fileContent.getBytes())), encoding);
         } catch (UnsupportedEncodingException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } catch (IOException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return fc;
     }
@@ -362,7 +365,7 @@ public class AcpService {
             String value = customerInfoMap.get(key);
             if (key.equals("pin")) {
                 if (null == accNo || "".equals(accNo.trim())) {
-                    LogUtil.writeLog("送了密码（PIN），必须在getCustomerInfo参数中上传卡号");
+                    logger.info("送了密码（PIN），必须在getCustomerInfo参数中上传卡号");
                     throw new RuntimeException("加密PIN没送卡号无法后续处理");
                 } else {
                     value = encryptPin(accNo, value, encoding);
@@ -373,14 +376,14 @@ public class AcpService {
                 sf.append(SDKConstants.AMPERSAND);
         }
         String customerInfo = sf.append("}").toString();
-        LogUtil.writeLog("组装的customerInfo明文：" + customerInfo);
+        logger.info("组装的customerInfo明文：" + customerInfo);
         try {
             return new String(SecureUtil.base64Encode(sf.toString().getBytes(
                     encoding)), encoding);
         } catch (UnsupportedEncodingException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } catch (IOException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return customerInfo;
     }
@@ -417,7 +420,7 @@ public class AcpService {
             } else {
                 if (key.equals("pin")) {
                     if (null == accNo || "".equals(accNo.trim())) {
-                        LogUtil.writeLog("送了密码（PIN），必须在getCustomerInfoWithEncrypt参数中上传卡号");
+                        logger.info("送了密码（PIN），必须在getCustomerInfoWithEncrypt参数中上传卡号");
                         throw new RuntimeException("加密PIN没送卡号无法后续处理");
                     } else {
                         value = encryptPin(accNo, value, encoding);
@@ -429,20 +432,20 @@ public class AcpService {
 
         if (!encryptedInfoSb.toString().equals("")) {
             encryptedInfoSb.setLength(encryptedInfoSb.length() - 1);//去掉最后一个&符号
-            LogUtil.writeLog("组装的customerInfo encryptedInfo明文：" + encryptedInfoSb.toString());
+            logger.info("组装的customerInfo encryptedInfo明文：" + encryptedInfoSb.toString());
             sf.append("encryptedInfo").append(SDKConstants.EQUAL).append(encryptData(encryptedInfoSb.toString(), encoding));
         } else {
             sf.setLength(sf.length() - 1);
         }
 
         String customerInfo = sf.append("}").toString();
-        LogUtil.writeLog("组装的customerInfo明文：" + customerInfo);
+        logger.info("组装的customerInfo明文：" + customerInfo);
         try {
             return new String(SecureUtil.base64Encode(sf.toString().getBytes(encoding)), encoding);
         } catch (UnsupportedEncodingException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } catch (IOException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return customerInfo;
     }
@@ -460,7 +463,7 @@ public class AcpService {
         try {
             byte[] b = SecureUtil.base64Decode(customerInfo.getBytes(encoding));
             String customerInfoNoBase64 = new String(b, encoding);
-            LogUtil.writeLog("解base64后===>" + customerInfoNoBase64);
+            logger.info("解base64后===>" + customerInfoNoBase64);
             //去掉前后的{}
             customerInfoNoBase64 = customerInfoNoBase64.substring(1, customerInfoNoBase64.length() - 1);
             customerInfoMap = SDKUtil.parseQString(customerInfoNoBase64);
@@ -472,9 +475,9 @@ public class AcpService {
                 customerInfoMap.putAll(encryptedInfoMap);
             }
         } catch (UnsupportedEncodingException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } catch (IOException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return customerInfoMap;
     }
@@ -493,7 +496,7 @@ public class AcpService {
         try {
             byte[] b = SecureUtil.base64Decode(customerInfo.getBytes(encoding));
             String customerInfoNoBase64 = new String(b, encoding);
-            LogUtil.writeLog("解base64后===>" + customerInfoNoBase64);
+            logger.info("解base64后===>" + customerInfoNoBase64);
             //去掉前后的{}
             customerInfoNoBase64 = customerInfoNoBase64.substring(1, customerInfoNoBase64.length() - 1);
             customerInfoMap = SDKUtil.parseQString(customerInfoNoBase64);
@@ -505,9 +508,9 @@ public class AcpService {
                 customerInfoMap.putAll(encryptedInfoMap);
             }
         } catch (UnsupportedEncodingException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } catch (IOException e) {
-            LogUtil.writeErrorLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
         return customerInfoMap;
     }

@@ -16,6 +16,8 @@ package ai.guiji.unionpaydemo.utils;
 
 
 import ai.guiji.unionpaydemo.config.SDKConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -32,6 +34,8 @@ import static ai.guiji.unionpaydemo.utils.SDKConstants.UNIONPAY_CNNAME;
  * @Description: acpsdk证书工具类，主要用于对证书的加载和使用
  */
 public class CertUtil {
+    private final static Logger logger = LoggerFactory.getLogger(CertUtil.class);
+
     /**
      * 证书容器，存储对商户请求报文签名私钥证书.
      */
@@ -79,7 +83,7 @@ public class CertUtil {
             initTrackKey();//构建磁道加密公钥
             initValidateCertFromDir();//初始化所有的验签证书
         } catch (Exception e) {
-            LogUtil.writeErrorLog("init失败。（如果是用对称密钥签名的可无视此异常。）", e);
+            logger.error("init失败。（如果是用对称密钥签名的可无视此异常。）", e);
         }
     }
 
@@ -88,12 +92,12 @@ public class CertUtil {
      */
     private static void addProvider() {
         if (Security.getProvider("BC") == null) {
-            LogUtil.writeLog("add BC provider");
+            logger.info("add BC provider");
             Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         } else {
             Security.removeProvider("BC"); //解决eclipse调试时tomcat自动重新加载时，BC存在不明原因异常的问题。
             Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-            LogUtil.writeLog("re-add BC provider");
+            logger.info("re-add BC provider");
         }
         printSysInfo();
     }
@@ -103,13 +107,13 @@ public class CertUtil {
      */
     private static void initSignCert() {
         if (!"01".equals(SDKConfig.getConfig().getSignMethod())) {
-            LogUtil.writeLog("非rsa签名方式，不加载签名证书。");
+            logger.info("非rsa签名方式，不加载签名证书。");
             return;
         }
         if (SDKConfig.getConfig().getSignCertPath() == null
                 || SDKConfig.getConfig().getSignCertPwd() == null
                 || SDKConfig.getConfig().getSignCertType() == null) {
-            LogUtil.writeErrorLog("WARN: " + SDKConfig.SDK_SIGNCERT_PATH + "或" + SDKConfig.SDK_SIGNCERT_PWD
+            logger.error("WARN: " + SDKConfig.SDK_SIGNCERT_PATH + "或" + SDKConfig.SDK_SIGNCERT_PWD
                     + "或" + SDKConfig.SDK_SIGNCERT_TYPE + "为空。 停止加载签名证书。");
             return;
         }
@@ -120,10 +124,10 @@ public class CertUtil {
             keyStore = getKeyInfo(SDKConfig.getConfig().getSignCertPath(),
                     SDKConfig.getConfig().getSignCertPwd(), SDKConfig
                             .getConfig().getSignCertType());
-            LogUtil.writeLog("InitSignCert Successful. CertId=["
+            logger.info("InitSignCert Successful. CertId=["
                     + getSignCertId() + "]");
         } catch (IOException e) {
-            LogUtil.writeErrorLog("InitSignCert Error", e);
+            logger.error("InitSignCert Error", e);
         }
     }
 
@@ -131,12 +135,12 @@ public class CertUtil {
      * 用配置文件acp_sdk.properties配置路径 加载敏感信息加密证书
      */
     private static void initMiddleCert() {
-        LogUtil.writeLog("加载中级证书==>" + SDKConfig.getConfig().getMiddleCertPath());
+        logger.info("加载中级证书==>" + SDKConfig.getConfig().getMiddleCertPath());
         if (!SDKUtil.isEmpty(SDKConfig.getConfig().getMiddleCertPath())) {
             middleCert = initCert(SDKConfig.getConfig().getMiddleCertPath());
-            LogUtil.writeLog("Load MiddleCert Successful");
+            logger.info("Load MiddleCert Successful");
         } else {
-            LogUtil.writeLog("WARN: acpsdk.middle.path is empty");
+            logger.info("WARN: acpsdk.middle.path is empty");
         }
     }
 
@@ -144,12 +148,12 @@ public class CertUtil {
      * 用配置文件acp_sdk.properties配置路径 加载敏感信息加密证书
      */
     private static void initRootCert() {
-        LogUtil.writeLog("加载根证书==>" + SDKConfig.getConfig().getRootCertPath());
+        logger.info("加载根证书==>" + SDKConfig.getConfig().getRootCertPath());
         if (!SDKUtil.isEmpty(SDKConfig.getConfig().getRootCertPath())) {
             rootCert = initCert(SDKConfig.getConfig().getRootCertPath());
-            LogUtil.writeLog("Load RootCert Successful");
+            logger.info("Load RootCert Successful");
         } else {
-            LogUtil.writeLog("WARN: acpsdk.rootCert.path is empty");
+            logger.info("WARN: acpsdk.rootCert.path is empty");
         }
     }
 
@@ -157,12 +161,12 @@ public class CertUtil {
      * 用配置文件acp_sdk.properties配置路径 加载银联公钥上级证书（中级证书）
      */
     private static void initEncryptCert() {
-        LogUtil.writeLog("加载敏感信息加密证书==>" + SDKConfig.getConfig().getEncryptCertPath());
+        logger.info("加载敏感信息加密证书==>" + SDKConfig.getConfig().getEncryptCertPath());
         if (!SDKUtil.isEmpty(SDKConfig.getConfig().getEncryptCertPath())) {
             encryptCert = initCert(SDKConfig.getConfig().getEncryptCertPath());
-            LogUtil.writeLog("Load EncryptCert Successful");
+            logger.info("Load EncryptCert Successful");
         } else {
-            LogUtil.writeLog("WARN: acpsdk.encryptCert.path is empty");
+            logger.info("WARN: acpsdk.encryptCert.path is empty");
         }
     }
 
@@ -174,9 +178,9 @@ public class CertUtil {
                 && !SDKUtil.isEmpty(SDKConfig.getConfig().getEncryptTrackKeyExponent())) {
             encryptTrackKey = getPublicKey(SDKConfig.getConfig().getEncryptTrackKeyModulus(),
                     SDKConfig.getConfig().getEncryptTrackKeyExponent());
-            LogUtil.writeLog("LoadEncryptTrackKey Successful");
+            logger.info("LoadEncryptTrackKey Successful");
         } else {
-            LogUtil.writeLog("WARN: acpsdk.encryptTrackKey.modulus or acpsdk.encryptTrackKey.exponent is empty");
+            logger.info("WARN: acpsdk.encryptTrackKey.modulus or acpsdk.encryptTrackKey.exponent is empty");
         }
     }
 
@@ -185,14 +189,14 @@ public class CertUtil {
      */
     private static void initValidateCertFromDir() {
         if (!"01".equals(SDKConfig.getConfig().getSignMethod())) {
-            LogUtil.writeLog("非rsa签名方式，不加载验签证书。");
+            logger.info("非rsa签名方式，不加载验签证书。");
             return;
         }
         certMap.clear();
         String dir = SDKConfig.getConfig().getValidateCertDir();
-        LogUtil.writeLog("加载验证签名证书目录==>" + dir + " 注：如果请求报文中version=5.1.0那么此验签证书目录使用不到，可以不需要设置（version=5.0.0必须设置）。");
+        logger.info("加载验证签名证书目录==>" + dir + " 注：如果请求报文中version=5.1.0那么此验签证书目录使用不到，可以不需要设置（version=5.0.0必须设置）。");
         if (SDKUtil.isEmpty(dir)) {
-            LogUtil.writeErrorLog("WARN: acpsdk.validateCert.dir is empty");
+            logger.error("WARN: acpsdk.validateCert.dir is empty");
             return;
         }
         CertificateFactory cf = null;
@@ -208,22 +212,22 @@ public class CertUtil {
                 certMap.put(validateCert.getSerialNumber().toString(),
                         validateCert);
                 // 打印证书加载信息,供测试阶段调试
-                LogUtil.writeLog("[" + file.getAbsolutePath() + "][CertId="
+                logger.info("[" + file.getAbsolutePath() + "][CertId="
                         + validateCert.getSerialNumber().toString() + "]");
             }
-            LogUtil.writeLog("LoadVerifyCert Successful");
+            logger.info("LoadVerifyCert Successful");
         } catch (CertificateException e) {
-            LogUtil.writeErrorLog("LoadVerifyCert Error", e);
+            logger.error("LoadVerifyCert Error", e);
         } catch (FileNotFoundException e) {
-            LogUtil.writeErrorLog("LoadVerifyCert Error File Not Found", e);
+            logger.error("LoadVerifyCert Error File Not Found", e);
         } catch (NoSuchProviderException e) {
-            LogUtil.writeErrorLog("LoadVerifyCert Error No BC Provider", e);
+            logger.error("LoadVerifyCert Error No BC Provider", e);
         } finally {
             if (null != in) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    LogUtil.writeErrorLog(e.toString());
+                    logger.error(e.toString());
                 }
             }
         }
@@ -240,9 +244,9 @@ public class CertUtil {
         try {
             keyStore = getKeyInfo(certFilePath, certPwd, "PKCS12");
             keyStoreMap.put(certFilePath, keyStore);
-            LogUtil.writeLog("LoadRsaCert Successful");
+            logger.info("LoadRsaCert Successful");
         } catch (IOException e) {
-            LogUtil.writeErrorLog("LoadRsaCert Error", e);
+            logger.error("LoadRsaCert Error", e);
         }
     }
 
@@ -263,20 +267,20 @@ public class CertUtil {
             in = new FileInputStream(path);
             encryptCertTemp = (X509Certificate) cf.generateCertificate(in);
             // 打印证书加载信息,供测试阶段调试
-            LogUtil.writeLog("[" + path + "][CertId="
+            logger.info("[" + path + "][CertId="
                     + encryptCertTemp.getSerialNumber().toString() + "]");
         } catch (CertificateException e) {
-            LogUtil.writeErrorLog("InitCert Error", e);
+            logger.error("InitCert Error", e);
         } catch (FileNotFoundException e) {
-            LogUtil.writeErrorLog("InitCert Error File Not Found", e);
+            logger.error("InitCert Error File Not Found", e);
         } catch (NoSuchProviderException e) {
-            LogUtil.writeErrorLog("LoadVerifyCert Error No BC Provider", e);
+            logger.error("LoadVerifyCert Error No BC Provider", e);
         } finally {
             if (null != in) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    LogUtil.writeErrorLog(e.toString());
+                    logger.error(e.toString());
                 }
             }
         }
@@ -299,13 +303,13 @@ public class CertUtil {
                     SDKConfig.getConfig().getSignCertPwd().toCharArray());
             return privateKey;
         } catch (KeyStoreException e) {
-            LogUtil.writeErrorLog("getSignCertPrivateKey Error", e);
+            logger.error("getSignCertPrivateKey Error", e);
             return null;
         } catch (UnrecoverableKeyException e) {
-            LogUtil.writeErrorLog("getSignCertPrivateKey Error", e);
+            logger.error("getSignCertPrivateKey Error", e);
             return null;
         } catch (NoSuchAlgorithmException e) {
-            LogUtil.writeErrorLog("getSignCertPrivateKey Error", e);
+            logger.error("getSignCertPrivateKey Error", e);
             return null;
         }
     }
@@ -331,13 +335,13 @@ public class CertUtil {
                     .getKey(keyAlias, certPwd.toCharArray());
             return privateKey;
         } catch (KeyStoreException e) {
-            LogUtil.writeErrorLog("getSignCertPrivateKeyByStoreMap Error", e);
+            logger.error("getSignCertPrivateKeyByStoreMap Error", e);
             return null;
         } catch (UnrecoverableKeyException e) {
-            LogUtil.writeErrorLog("getSignCertPrivateKeyByStoreMap Error", e);
+            logger.error("getSignCertPrivateKeyByStoreMap Error", e);
             return null;
         } catch (NoSuchAlgorithmException e) {
-            LogUtil.writeErrorLog("getSignCertPrivateKeyByStoreMap Error", e);
+            logger.error("getSignCertPrivateKeyByStoreMap Error", e);
             return null;
         }
     }
@@ -354,7 +358,7 @@ public class CertUtil {
                 encryptCert = initCert(path);
                 return encryptCert.getPublicKey();
             } else {
-                LogUtil.writeErrorLog("acpsdk.encryptCert.path is empty");
+                logger.error("acpsdk.encryptCert.path is empty");
                 return null;
             }
         } else {
@@ -401,7 +405,7 @@ public class CertUtil {
                 cf = certMap.get(certId);
                 return cf.getPublicKey();
             } else {
-                LogUtil.writeErrorLog("缺少certId=[" + certId + "]对应的验签证书.");
+                logger.error("缺少certId=[" + certId + "]对应的验签证书.");
                 return null;
             }
         }
@@ -423,7 +427,7 @@ public class CertUtil {
                     .getCertificate(keyAlias);
             return cert.getSerialNumber().toString();
         } catch (Exception e) {
-            LogUtil.writeErrorLog("getSignCertId Error", e);
+            logger.error("getSignCertId Error", e);
             return null;
         }
     }
@@ -440,7 +444,7 @@ public class CertUtil {
                 encryptCert = initCert(path);
                 return encryptCert.getSerialNumber().toString();
             } else {
-                LogUtil.writeErrorLog("acpsdk.encryptCert.path is empty");
+                logger.error("acpsdk.encryptCert.path is empty");
                 return null;
             }
         } else {
@@ -459,11 +463,11 @@ public class CertUtil {
      */
     private static KeyStore getKeyInfo(String pfxkeyfile, String keypwd,
                                        String type) throws IOException {
-        LogUtil.writeLog("加载签名证书==>" + pfxkeyfile);
+        logger.info("加载签名证书==>" + pfxkeyfile);
         FileInputStream fis = null;
         try {
             KeyStore ks = KeyStore.getInstance(type, "BC");
-            LogUtil.writeLog("Load RSA CertPath=[" + pfxkeyfile + "],Pwd=[" + keypwd + "],type=[" + type + "]");
+            logger.info("Load RSA CertPath=[" + pfxkeyfile + "],Pwd=[" + keypwd + "],type=[" + type + "]");
 
             File file = new File(getRealCertPath() + pfxkeyfile);
             fis = new FileInputStream(file);
@@ -474,7 +478,7 @@ public class CertUtil {
             }
             return ks;
         } catch (Exception e) {
-            LogUtil.writeErrorLog("getKeyInfo Error", e);
+            logger.error("getKeyInfo Error", e);
             return null;
         } finally {
             if (null != fis)
@@ -515,7 +519,7 @@ public class CertUtil {
                     .getCertificate(keyAlias);
             return cert.getSerialNumber().toString();
         } catch (KeyStoreException e) {
-            LogUtil.writeErrorLog("getCertIdIdByStore Error", e);
+            logger.error("getCertIdIdByStore Error", e);
             return null;
         }
     }
@@ -535,7 +539,7 @@ public class CertUtil {
             RSAPublicKeySpec keySpec = new RSAPublicKeySpec(b1, b2);
             return keyFactory.generatePublic(keySpec);
         } catch (Exception e) {
-            LogUtil.writeErrorLog("构造RSA公钥失败：" + e);
+            logger.error("构造RSA公钥失败：" + e);
             return null;
         }
     }
@@ -554,7 +558,7 @@ public class CertUtil {
                     x509CertString.getBytes("ISO-8859-1"));
             x509Cert = (X509Certificate) cf.generateCertificate(tIn);
         } catch (Exception e) {
-            LogUtil.writeErrorLog("gen certificate error", e);
+            logger.error("gen certificate error", e);
         }
         return x509Cert;
     }
@@ -570,7 +574,7 @@ public class CertUtil {
             if (!SDKUtil.isEmpty(path)) {
                 initMiddleCert();
             } else {
-                LogUtil.writeErrorLog(SDKConfig.SDK_MIDDLECERT_PATH + " not set in " + SDKConfig.FILE_NAME);
+                logger.error(SDKConfig.SDK_MIDDLECERT_PATH + " not set in " + SDKConfig.FILE_NAME);
                 return null;
             }
         }
@@ -588,7 +592,7 @@ public class CertUtil {
             if (!SDKUtil.isEmpty(path)) {
                 initRootCert();
             } else {
-                LogUtil.writeErrorLog(SDKConfig.SDK_ROOTCERT_PATH + " not set in " + SDKConfig.FILE_NAME);
+                logger.error(SDKConfig.SDK_ROOTCERT_PATH + " not set in " + SDKConfig.FILE_NAME);
                 return null;
             }
         }
@@ -622,19 +626,19 @@ public class CertUtil {
     private static boolean verifyCertificateChain(X509Certificate cert) {
 
         if (null == cert) {
-            LogUtil.writeErrorLog("cert must Not null");
+            logger.error("cert must Not null");
             return false;
         }
 
         X509Certificate middleCert = CertUtil.getMiddleCert();
         if (null == middleCert) {
-            LogUtil.writeErrorLog("middleCert must Not null");
+            logger.error("middleCert must Not null");
             return false;
         }
 
         X509Certificate rootCert = CertUtil.getRootCert();
         if (null == rootCert) {
-            LogUtil.writeErrorLog("rootCert or cert must Not null");
+            logger.error("rootCert or cert must Not null");
             return false;
         }
 
@@ -664,12 +668,12 @@ public class CertUtil {
             @SuppressWarnings("unused")
             PKIXCertPathBuilderResult result = (PKIXCertPathBuilderResult) builder
                     .build(pkixParams);
-            LogUtil.writeLog("verify certificate chain succeed.");
+            logger.info("verify certificate chain succeed.");
             return true;
         } catch (CertPathBuilderException e) {
-            LogUtil.writeErrorLog("verify certificate chain fail.", e);
+            logger.error("verify certificate chain fail.", e);
         } catch (Exception e) {
-            LogUtil.writeErrorLog("verify certificate chain exception: ", e);
+            logger.error("verify certificate chain exception: ", e);
         }
         return false;
     }
@@ -686,7 +690,7 @@ public class CertUtil {
     public static boolean verifyCertificate(X509Certificate cert) {
 
         if (null == cert) {
-            LogUtil.writeErrorLog("cert must Not null");
+            logger.error("cert must Not null");
             return false;
         }
         try {
@@ -696,21 +700,21 @@ public class CertUtil {
                 return false;
             }
         } catch (Exception e) {
-            LogUtil.writeErrorLog("verifyCertificate fail", e);
+            logger.error("verifyCertificate fail", e);
             return false;
         }
 
         if (SDKConfig.getConfig().isIfValidateCNName()) {
             // 验证公钥是否属于银联
             if (!UNIONPAY_CNNAME.equals(CertUtil.getIdentitiesFromCertficate(cert))) {
-                LogUtil.writeErrorLog("cer owner is not CUP:" + CertUtil.getIdentitiesFromCertficate(cert));
+                logger.error("cer owner is not CUP:" + CertUtil.getIdentitiesFromCertficate(cert));
                 return false;
             }
         } else {
             // 验证公钥是否属于银联
             if (!UNIONPAY_CNNAME.equals(CertUtil.getIdentitiesFromCertficate(cert))
                     && !"00040000:SIGN".equals(CertUtil.getIdentitiesFromCertficate(cert))) {
-                LogUtil.writeErrorLog("cer owner is not CUP:" + CertUtil.getIdentitiesFromCertficate(cert));
+                logger.error("cer owner is not CUP:" + CertUtil.getIdentitiesFromCertficate(cert));
                 return false;
             }
         }
@@ -721,34 +725,34 @@ public class CertUtil {
      * 打印系统环境信息
      */
     private static void printSysInfo() {
-        LogUtil.writeLog("================= SYS INFO begin====================");
-        LogUtil.writeLog("os_name:" + System.getProperty("os.name"));
-        LogUtil.writeLog("os_arch:" + System.getProperty("os.arch"));
-        LogUtil.writeLog("os_version:" + System.getProperty("os.version"));
-        LogUtil.writeLog("java_vm_specification_version:"
+        logger.info("================= SYS INFO begin====================");
+        logger.info("os_name:" + System.getProperty("os.name"));
+        logger.info("os_arch:" + System.getProperty("os.arch"));
+        logger.info("os_version:" + System.getProperty("os.version"));
+        logger.info("java_vm_specification_version:"
                 + System.getProperty("java.vm.specification.version"));
-        LogUtil.writeLog("java_vm_specification_vendor:"
+        logger.info("java_vm_specification_vendor:"
                 + System.getProperty("java.vm.specification.vendor"));
-        LogUtil.writeLog("java_vm_specification_name:"
+        logger.info("java_vm_specification_name:"
                 + System.getProperty("java.vm.specification.name"));
-        LogUtil.writeLog("java_vm_version:"
+        logger.info("java_vm_version:"
                 + System.getProperty("java.vm.version"));
-        LogUtil.writeLog("java_vm_name:" + System.getProperty("java.vm.name"));
-        LogUtil.writeLog("java.version:" + System.getProperty("java.version"));
-        LogUtil.writeLog("java.vm.vendor=[" + System.getProperty("java.vm.vendor") + "]");
-        LogUtil.writeLog("java.version=[" + System.getProperty("java.version") + "]");
+        logger.info("java_vm_name:" + System.getProperty("java.vm.name"));
+        logger.info("java.version:" + System.getProperty("java.version"));
+        logger.info("java.vm.vendor=[" + System.getProperty("java.vm.vendor") + "]");
+        logger.info("java.version=[" + System.getProperty("java.version") + "]");
         printProviders();
-        LogUtil.writeLog("================= SYS INFO end=====================");
+        logger.info("================= SYS INFO end=====================");
     }
 
     /**
      * 打jre中印算法提供者列表
      */
     private static void printProviders() {
-        LogUtil.writeLog("Providers List:");
+        logger.info("Providers List:");
         Provider[] providers = Security.getProviders();
         for (int i = 0; i < providers.length; i++) {
-            LogUtil.writeLog(i + 1 + "." + providers[i].getName());
+            logger.info(i + 1 + "." + providers[i].getName());
         }
     }
 
