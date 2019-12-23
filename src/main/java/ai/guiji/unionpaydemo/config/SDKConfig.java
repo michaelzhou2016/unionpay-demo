@@ -15,7 +15,7 @@
 package ai.guiji.unionpaydemo.config;
 
 
-import ai.guiji.unionpaydemo.utils.SDKConstants;
+import ai.guiji.unionpaydemo.constant.SDKConstants;
 import ai.guiji.unionpaydemo.utils.SDKUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

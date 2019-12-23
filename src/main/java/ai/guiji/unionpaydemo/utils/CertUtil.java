@@ -27,7 +27,7 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static ai.guiji.unionpaydemo.utils.SDKConstants.UNIONPAY_CNNAME;
+import static ai.guiji.unionpaydemo.constant.SDKConstants.UNIONPAY_CNNAME;
 
 /**
  * @author 花花

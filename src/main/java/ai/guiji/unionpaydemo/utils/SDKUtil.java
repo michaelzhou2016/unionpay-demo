@@ -15,6 +15,7 @@
 package ai.guiji.unionpaydemo.utils;
 
 import ai.guiji.unionpaydemo.config.SDKConfig;
+import ai.guiji.unionpaydemo.constant.SDKConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ import java.util.Map.Entry;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import static ai.guiji.unionpaydemo.utils.SDKConstants.*;
+import static ai.guiji.unionpaydemo.constant.SDKConstants.*;
 
 /**
  * @author 花花
