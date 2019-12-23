@@ -9,4 +9,6 @@ public interface UnionPayService {
     Map<String, String> applyQrCode(Map<String, String> params);
 
     String notify(HttpServletRequest req) throws IOException;
+
+    void query(Map<String, String> params);
 }
